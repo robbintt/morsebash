@@ -1,5 +1,7 @@
 #include <termios.h>
 #include <stdio.h>
+#include <time.h>
+#include <sys/time.h> /* for gettimeofday() */
 
 
 struct termios info;
@@ -34,6 +36,13 @@ void teardown_termios()
 
 void termios_demo()
 {
+  int keydown = 0;
+  time_t time_keydown, time_keyup;
+  int time_diff = 0;
+
+  struct timeval t1, t2;
+  double elapsedTime;
+
   int ch;
   while((ch = getchar()) != 27 /* ascii ESC */) {
 		if (ch < 0) {
@@ -41,9 +50,30 @@ void termios_demo()
 			clearerr(stdin);
 			/* do other stuff */
     } else if (ch == 'f') {
-      printf("%c", ch);
+      keydown = 1; /* set keydown */
+      time_keydown = time(NULL);
+      gettimeofday(&t1, NULL);
+      printf("%c\n", ch);
 		} else {
 			/* some key OTHER than ESC was hit, do something about it? */
+      
+      if (keydown == 1) {
+        keydown = 0; /* set keyup */
+        time_keyup = time(NULL);
+        gettimeofday(&t2, NULL);
+        time_diff = difftime(time_keyup, time_keydown);
+        printf("%i\n", time_diff);
+
+				// compute and print the elapsed time in millisec
+				elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
+				elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
+				printf("%f ms.\n", elapsedTime);
+      }
+      // give difftime of keydown and keyup
+      // how will this work given VMIN is always returning an error... 
+      // i guess in error we will reset the flag too
+      // maybe the debounce goes in error
+      
 		}
   }
   printf("\n");
