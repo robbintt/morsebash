@@ -40,10 +40,13 @@ void termios_demo()
 			if (ferror(stdin)) { /* there was an error... */ }
 			clearerr(stdin);
 			/* do other stuff */
+    } else if (ch == 'f') {
+      printf("%c", ch);
 		} else {
 			/* some key OTHER than ESC was hit, do something about it? */
 		}
   }
+  printf("\n");
 }
 
 int main()
