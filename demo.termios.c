@@ -1,7 +1,10 @@
-#include <termios.h>
 #include <stdio.h>
 #include <time.h>
 #include <sys/time.h> /* for gettimeofday() */
+
+#include <termios.h>
+
+#include <ncurses.h>
 
 
 struct termios info;

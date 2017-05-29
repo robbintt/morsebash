@@ -7,7 +7,10 @@ SRCS = $(wildcard *.c)
 
 PROGS = $(patsubst %.c,%,$(SRCS))
 
-all: $(PROGS)
+# make sure you have the <library>-dev package installed
+LINKERS =-lncurses
+
+all: $(PROGS) $(LINKERS)
 
 clean:
 	rm -f $(PROGS)
