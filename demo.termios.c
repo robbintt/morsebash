@@ -6,6 +6,9 @@
 
 struct termios info;
 
+int keydown = 0;
+struct timeval t1, t2, t_debounce;
+
 /* termios - from: https://stackoverflow.com/a/21101030
  * see: `man termios` */
 void setup_termios()
@@ -34,24 +37,39 @@ void teardown_termios()
   tcsetattr(0, TCSANOW, &info);
 }
 
+// compute and print the elapsed time in millisec
+double yield_time()
+{
+  double elapsedTime;
+  elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
+  elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
+  printf("%f ms.\n", elapsedTime);
+
+  return elapsedTime;
+}
+
 void termios_demo()
 {
-  int keydown = 0;
-  time_t time_keydown, time_keyup;
-  int time_diff = 0;
-
-  struct timeval t1, t2;
-  double elapsedTime;
 
   int ch;
   while((ch = getchar()) != 27 /* ascii ESC */) {
-		if (ch < 0) {
-			if (ferror(stdin)) { /* there was an error... */ }
+		if (ch < 0) { if (ferror(stdin)) { /* there was an error... */ }
+
+      // i want to test debounce here and yield the time if debounce state is false
+      // same code as if you hit another key...
+      if (keydown == 1) {
+        gettimeofday(&t2, NULL);
+        gettimeofday(&t_debounce, NULL);
+
+        if (yield_time() > 2500) {
+          keydown = 0; /* set keyup */
+        }
+      }
+
 			clearerr(stdin);
 			/* do other stuff */
     } else if (ch == 'f') {
       keydown = 1; /* set keydown */
-      time_keydown = time(NULL);
       gettimeofday(&t1, NULL);
       printf("%c\n", ch);
 		} else {
@@ -59,15 +77,9 @@ void termios_demo()
       
       if (keydown == 1) {
         keydown = 0; /* set keyup */
-        time_keyup = time(NULL);
         gettimeofday(&t2, NULL);
-        time_diff = difftime(time_keyup, time_keydown);
-        printf("%i\n", time_diff);
 
-				// compute and print the elapsed time in millisec
-				elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
-				elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
-				printf("%f ms.\n", elapsedTime);
+        yield_time();
       }
       // give difftime of keydown and keyup
       // how will this work given VMIN is always returning an error... 
